@@ -130,7 +130,8 @@ const R0=[
 const DECOR=R0.filter(r=>["table","comptoir"].includes(r[2]));
 const NONUM=["Mur haut A","Mur haut B","Mur gauche 1"]; // dessinés sans numéro
 const DECO2=R0.filter(r=>NONUM.includes(r[1]));
-const R=R0.filter(r=>!["table","comptoir"].includes(r[2])&&!NONUM.includes(r[1])).map((r,i)=>[i+1,...r.slice(1)]);
+const NEWN=n=>n<=14?15-n:n;
+const R=R0.filter(r=>!["table","comptoir"].includes(r[2])&&!NONUM.includes(r[1])).map((r,i)=>[NEWN(i+1),...r.slice(1)]).sort((a,b)=>a[0]-b[0]);
 const $=s=>document.querySelector(s);
 let P=JSON.parse(localStorage.getItem("produits")||"[]");
 let sel=null,hits=[],edit=null;
@@ -161,8 +162,9 @@ const MAP=[
  [4,["Bazar /"]],
  [15,["Solaire /"]]
 ];
-const DESC={1:"Confiserie (près de la caisse)",2:"Hygiène et santé",3:"Beauté et produits bébé",4:"Bazar et entretien maison",5:"Sodas, colas, énergisantes",6:"Eaux et jus de fruits",7:"Produits frais : laitiers, beurre, œufs, viandes",8:"Bières",9:"Chips, extrudés, snacks salés, biscuits salés",10:"Biscuits sucrés",11:"Épicerie sèche",12:"Conserves et nourriture bébé",13:"Fruits secs et noix",14:"Glaces et surgelés",15:"Solaire et éclairage",16:"Vins et spiritueux"};
-function rayonDe(cat){for(const [n,ks] of MAP)if(ks.some(k=>cat.includes(k)))return n;return 0;}
+const DESC0={1:"Confiserie (près de la caisse)",2:"Hygiène et santé",3:"Beauté et produits bébé",4:"Bazar et entretien maison",5:"Sodas, colas, énergisantes",6:"Eaux et jus de fruits",7:"Produits frais : laitiers, beurre, œufs, viandes",8:"Bières",9:"Chips, extrudés, snacks salés, biscuits salés",10:"Biscuits sucrés",11:"Épicerie sèche",12:"Conserves et nourriture bébé",13:"Fruits secs et noix",14:"Glaces et surgelés",15:"Solaire et éclairage",16:"Vins et spiritueux"};
+const DESC=Object.fromEntries(Object.entries(DESC0).map(([k,v])=>[NEWN(+k),v]));
+function rayonDe(cat){for(const [n,ks] of MAP)if(ks.some(k=>cat.includes(k)))return NEWN(n);return 0;}
 function autoRange(){let a=0;for(const p of P)if(p.ref&&p.rayon===0){const n=rayonDe(p.cat||"");if(n){p.rayon=n;a++;}}save();return a;}
 function seedBase(){
   const have=new Set(P.map(p=>p.ref).filter(Boolean));let a=0;
@@ -170,10 +172,11 @@ function seedBase(){
     P.push({id:"b"+b[0],ref:b[0],nom:b[1],code:"",cat:b[2],prix:"",qte:b[3],seuil:3,per:"",rayon:rayonDe(b[2]),cout:b[4]});a++;}
   save();return a;
 }
-if(!localStorage.getItem("base_chargee")){if(!P.length)seedBase();localStorage.setItem("base_chargee","1");}
+if(!localStorage.getItem("base_chargee")){if(!P.length){seedBase();localStorage.setItem("renum1","1");}localStorage.setItem("base_chargee","1");}
 
 let M=JSON.parse(localStorage.getItem("mouvements")||"[]");
 const saveM=()=>localStorage.setItem("mouvements",JSON.stringify(M));
+if(!localStorage.getItem("renum1")){for(const p of P)if(p.rayon>=1&&p.rayon<=14)p.rayon=15-p.rayon;for(const m of M)if(m.rayon>=1&&m.rayon<=14)m.rayon=15-m.rayon;save();saveM();localStorage.setItem("renum1","1");}
 let mv=null;
 function openMv(id,sign){
   mv={p:P.find(x=>x.id==id),sign};
@@ -503,3 +506,5 @@ render();
 </script>
 </body>
 </html>
+
+Envoyé de mon iPhone
